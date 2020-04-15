@@ -62,7 +62,7 @@ parNames = {'\gamma', '\beta','SD'};
 cmaps = colormap('hsv');
 colours = ['r','y','g','b'];
 condInds = [1 2 3 4];
-condNames = {'Ig','T1','Up','T2'};
+condNames = {'Ignore','T1','Update','T2'};
 n=13;
 for j = 1:2
     for i = 1:3
@@ -98,7 +98,7 @@ for j = 1:2
 
     end
 end
-legend(condNames(condInds),'Location','SouthEast')
+legend(condNames(condInds),'Location','Best')
 % 
 makeSubplotScalesEqual(2,3,[1 4])
 makeSubplotScalesEqual(2,3,[2 5])

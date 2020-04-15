@@ -26,8 +26,8 @@ bias = linspace(-.3,.3,nSteps); % bias proportion size
 %% grid search of params
 nParSteps = 11;
 cols = [3:2:10];
-g = linspace(0.1,.98,nParSteps);
-sd = linspace(0.01,100,nParSteps);
+g = linspace(0.01,.98,nParSteps);
+sd = linspace(0.1,100,nParSteps);
 
 params = [ kron(g, ones(1,nParSteps));...
     kron(ones(1,nParSteps), sd)]';
@@ -108,7 +108,7 @@ figure()
 
 m = ['ko';'bx';'g+';'r^'];
 modelNames = {'1D','2D'};
-parNames = {'sd','a','g'}; % standard deviation, target, misbind, guess
+parNames = {'\sigma','\alpha','\gamma'}; % standard deviation, target, misbind, guess
 for j = 1:nSteps
     subplot(3,2,j)
     hold on
@@ -246,8 +246,8 @@ parNames = {'\sigma','\alpha','\gamma'};
 
 figure(6);clf;
 simParsOrdered1 = round(simParsOrdered,2,'significant');
-c = colormap('jet');
-c = c(1:11:end,:);
+c  = [ 0 0 1; 0 1 1;0 1 0; 1 1 0; 1 .4 0;1 0 0;];
+colormap(c);
 for j=1:2
     for i = 1:3
        subplot(2,3,(j-1)*3+i)
@@ -258,16 +258,16 @@ for j=1:2
        line([0 100],[0 0],'Color','k','LineStyle','--')
        if j==2,    xlabel(parNames{i},'FontWeight','bold'), end
        if j==1, title(parNames{i}), end
+       if i==1; ylabel(sprintf('%s\nrecovery error',labels{j}),'FontWeight','bold');end
        box off
-       x = unique(round(simParsOrdered1(:,i), 1));
-       set(gca,'XTick',1:4:11,'XTickLabel',x([1 ceil(length(x)/2) end]))
+       x = unique(round(simParsOrdered1(:,i), 0 + (i>1)));
+       set(gca,'XTick',1:5:11,'XTickLabel',x([1 ceil(length(x)/2) end]))
        xlim([1 11])
-       if i==1
-           ylabel(sprintf('%s\nrecovery error',labels{j}),'FontWeight','bold')
-       end
+       if i==1; ylim([-120 120]); set(gca,'YTick',-100:100:100);
+       else; ylim([-.75 .75]); set(gca,'YTick', -.5:.5:.5);end
     end
 end
-subplot(2,3,4), colorbar(gca,'North','Ticks',[0 .5 1],'TickLabels',[bias(1) 0 bias(end)])
+subplot(2,3,4), colorbar(gca,'North','Ticks',[0 1],'TickLabels',[bias(1) bias(end)])
 makeSubplotScalesEqual(2,3,[2:3 5:6])
 makeSubplotScalesEqual(2,3,[1 4])
 h = axes('visible','off'); % super X and Y labels
@@ -277,46 +277,46 @@ x.Position(2) = x.Position(2) .* 1.2;
 
 % legend(h(:,1), cellfun(@num2str,num2cell(numTrials(1:10)),'UniformOutput',0),...
 %     'Location',[.8732 .2528 .1232 .3536])
-%saveas(figure(6), 'Figs/MemToolbox2DSimDistrRadial_5.jpg');
+saveas(figure(6), 'Figs/MemToolbox2DSimDistrRadial_5.jpg');
 
 
 
 %% bland altman
-
-figure(7);clf
-meanVals = nancat(4, fitParsOrdered(:,1:3,:) + simParsOrdered, fitPars3Ordered(:,1:3,:) + simParsOrdered) ./ 2;
-c = colormap('jet');
-for j = 1:2
-    for i = 1:3
-       subplot(2,3,(j-1)*3+i)
-       set(gca,'ColorOrder',c);
-%        diff = permute(groupMeans(d(:,:,:,j),1,simParsOrdered1(:,:,:,j),'dim'),[4,3,2,1]);
-%        h = errorBarPlot(diff(:,:,:,i),'area',1);
-        for k = 1:6
-            conditionalPlot(meanVals(:,i,k,j), sq(d(:,i,k,:,j)),[],'color',c(k,:));
-            hold on; 
-        end
-        line([0 100],[0 0],'Color','k','LineStyle','--')
-
-       if j==1; title(parNames{i}); end
-       if j==2,    xlabel('mean (fit + sim)'), end
-       if i==1
-           ylabel(sprintf('%s\nfit - sim',labels{j}));
-           xlim([0 100]);
-       else
-           xlim([0 1])
-       end
-       
-       box off
-
-    end
-end
-makeSubplotScalesEqual(2,3,[2:3, 5:6])
-makeSubplotScalesEqual(2,3,[1 4])
-colormap(c)
-subplot(2,3,4), colorbar(gca,'North','Ticks',[0 1], 'TickLabels',arrayfun(@num2str, bias([1 end]),'UniformOutput',0))
-    
-%saveas(figure(7), 'Figs/MemToolbox2DSimDistrRadial_6.jpg');
+% 
+% figure(7);clf
+% meanVals = nancat(4, fitParsOrdered(:,1:3,:) + simParsOrdered, fitPars3Ordered(:,1:3,:) + simParsOrdered) ./ 2;
+% 
+% for j = 1:2
+%     for i = 1:3
+%        subplot(2,3,(j-1)*3+i)
+%        set(gca,'ColorOrder',c);
+% %        diff = permute(groupMeans(d(:,:,:,j),1,simParsOrdered1(:,:,:,j),'dim'),[4,3,2,1]);
+% %        h = errorBarPlot(diff(:,:,:,i),'area',1);
+%         for k = 1:6
+%             conditionalPlot(meanVals(:,i,k,j), d(:,i,k,j),[],'color',c(k,:));
+%             hold on; 
+%         end
+%         line([0 100],[0 0],'Color','k','LineStyle','--')
+% 
+%        if j==1; title(parNames{i}); end
+%        if j==2,    xlabel('mean (fit + sim)'), end
+%        if i==1
+%            ylabel(sprintf('%s\nfit - sim',labels{j}));
+%            xlim([0 100]);
+%        else
+%            xlim([0 1])
+%        end
+%        
+%        box off
+% 
+%     end
+% end
+% makeSubplotScalesEqual(2,3,[2:3, 5:6])
+% makeSubplotScalesEqual(2,3,[1 4])
+% colormap(c)
+% subplot(2,3,4), colorbar(gca,'North','Ticks',[0 1], 'TickLabels',arrayfun(@num2str, bias([1 end]),'UniformOutput',0))
+%     
+% saveas(figure(7), 'Figs/MemToolbox2DSimDistrRadial_6.jpg');
 
 %% plot diff in pars vs pars
 d = abs(nancat(5, fitParsOrdered(:,1:3,:) - simParsOrdered, fitPars3Ordered(:,1:3,:) - simParsOrdered));

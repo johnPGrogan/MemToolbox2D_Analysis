@@ -1,4 +1,4 @@
-function MemToolbox2DPosterios()
+function MemToolbox2DPosteriors()
 % MemToolbox2DPosteriors
 % MCMC posterior samples, plotted against each other, for 1D and 2D models
 

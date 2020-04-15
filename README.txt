@@ -25,12 +25,15 @@ Contents:
 	
 	MemToolbox2DSimNTrials.m - simulations with different numbers of parameters
 	MemToolbox2DSimNDist.m - different numbers of distractors
+	MemToolbox2DSimStimConstr.m - Effect of stimulus constraints on parameter recovery
+
 	MemToolbox2DSimConstBias.m - constant translation bias
+    MemToolbox2DSimPropBias.m - proportional bias to edge
 	MemToolbox2DSimRadBias.m - radial bias to screen centre
 	MemToolbox2DSimDistrRadial .m - radial bias to distractor location
+
 	MemToolbox2DSim2AFC.m - 2AFC data simulation and fitting
 	MemToolbox2DSimResampling.m - Edge-resamplings vs edge-constraining
-	MemToolbox2DSimStimConstr.m - Effect of stimulus constraints on parameter recovery
 	
 	MemToolbox2DPosteriors.m  - Plot heatmaps of posterior samples from 1D and 2D fits
 	

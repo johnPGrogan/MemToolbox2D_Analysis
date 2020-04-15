@@ -104,7 +104,7 @@ for iVar = 1:7
         else
             ylim([0 1])
             if iPar==4
-                xlabel(varNamesShort{iVar})
+                xlabel(varNames{iVar})
             end
         end
         if iVar==1
@@ -203,7 +203,89 @@ x = xlabel('simulated parameter','FontWeight','normal');
 x.Position(2) = x.Position(2)*1.2;
 
 
-%% 
+%% quant plot
+
+percs = [0 0.2 2.3 15.9 50 84.1 97.7 99.8 100];
+figure(5);clf
+
+for i = 1:5
+    subplot(2,5,i)
+    s = round(simParsOrdered(:,inds(i,1)),1);
+    f = behVarMat(:,inds(i,2));
+    
+    fp = groupMeans(f,1,s,'dim');
+    quantPlot(unique(s),fp,percs);
+    
+    if i==1
+        ylabel(sprintf('%s',varNames{inds(i,2)}))
+    else
+        ylabel(varNames{inds(i,2) })
+    end
+    if i>2
+        xlim([0 1])
+    end
+    xlabel(parNames{inds(i,1)},'FontWeight','bold')
+    
+    box off
+end
+
+for iPar = 1:4
+    subplot(2,5,iPar+6)
+    s = round(simParsOrdered(:,iPar),1);
+    f = fitParsOrdered(:,iPar);
+    
+    fp = groupMeans(f,1,s,'dim');
+    quantPlot(unique(s),fp,percs);
+        
+    if iPar==1
+        ylim([0 100])
+        ylabel(parNames{iPar},'FontWeight','bold')
+    else
+        ylabel(parNames{iPar},'FontWeight','bold')
+        xlim([0 1])
+    end
+    xlabel(parNames{iPar},'FontWeight','bold')
+    
+
+    box off
+end
+
+h = axes('visible','off'); % super X and Y labels
+h.XLabel.Visible = 'on';
+x = xlabel('simulated parameter','FontWeight','normal');
+x.Position(2) = x.Position(2)*1.2;
+
+
+%%
+
+figure(6);clf
+for iVar = 1:7
+    for iPar = 1:4
+        subplot(7,4,(iVar-1)*4+iPar)
+        s = round(simParsOrdered(:,iPar),1);
+        f = behVarMat(:,iVar);
+
+        fp = groupMeans(f,1,s,'dim');
+        quantPlot(unique(s),fp,percs);
+
+        if iPar==1
+            ylabel(sprintf('%s',varNamesShort{iVar}))
+
+        end
+        if iPar>2
+            xlim([0 1])
+        end
+        if iVar==1
+            title(parNames{iPar},'FontWeight','bold')
+        elseif iVar==7
+            xlabel(parNames{iPar},'FontWeight','bold')
+        end
+
+        box off
+    end
+end
+
+%%
 
 save('./Data/MemToolbox2DBehMetrics.mat','simParsOrdered','fitParsOrdered','behVarMat','p')
 end

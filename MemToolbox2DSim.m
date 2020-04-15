@@ -19,25 +19,24 @@ model           = SwapModel2D(); % 2D misbinding model
 nPPs            = 100; % number of pps to simulate
 
 if nargin==0
-    nIter = 2;
+    nIter = 100;
 end
 %% grid search of params
 nSteps = 11;
 cols = [3:2:10];
-g = linspace(0.0,1,nSteps);
-b = linspace(0,1,nSteps);
-sd = linspace(0.01,100,nSteps);
+g = linspace(0.01,0.98,nSteps);
+b = linspace(0.01,0.98,nSteps);
+sd = linspace(0.1,100,nSteps);
 
 
 params = [ kron(g, ones(1,nSteps^2)) ;...
     kron(ones(1,nSteps), kron(b, ones(1,nSteps)));...
     kron(ones(1,nSteps^2), sd)]';
-
 nParSets = length(params);
 %%
 fitPars2D = NaN(nParSets,3,nIter);
 ll = NaN(nParSets,1,nIter);
-simulatedData2D = cell(nParSets,1); 
+simulatedData2D = cell(nParSets,1);
 tic
 parfor i=1:nParSets
     disp(i)
@@ -51,11 +50,9 @@ parfor i=1:nParSets
             simData.errors = SampleFromModel2D(model, params(i,:),...
                 [1 numTrials], simData); % simulate responses
             
-            
+            simulatedData2D{i} = simData;
             % fit swap model with maximum likelihood
             [fitPars2D(i,:,j),ll(i,1,j)] = MLE(simData, model);
-            
-            simulatedData2D{i} = simData;
         end
     end
 end
@@ -227,9 +224,12 @@ for j = 1:2
        if j==2,    xlabel(parNames{i},'FontWeight','bold'), end
        if i==1, ylabel(sprintf('%s\nrecovery error',modelNames{j}),'FontWeight','bold'), end
        box off
-       x = unique(round(simParsOrdered1(:,i,j), 1));
+       x = unique(round(simParsOrdered1(:,i,j), 0+(i>1)));
        set(gca,'XTick',1:5:11,'XTickLabel',x(1:5:end))
        xlim([1 11])
+       if i==1; ylim([-100 100]); set(gca, 'YTick', -100:50:100);
+       else; ylim([-.6 .6]); set(gca, 'YTick', -.5:.5:.5);
+       end
     end
 end
 makeSubplotScalesEqual(2,4,[2:4, 6:8])
@@ -239,39 +239,77 @@ h = axes('visible','off'); % super X and Y labels
 h.XLabel.Visible = 'on';
 xlabel('simulated parameter','FontWeight','normal')
 
-%saveas(figure(6), 'Figs/MemToolbox2DSim_4.jpg');
+saveas(figure(6), 'Figs/MemToolbox2DSim_4.jpg');
 
-%% bland altman
+%% abs
 
-figure(7);clf
-meanVals = nancat(4, fitPars1DOrdered + simPars1DOrdered, fitParsOrdered + simParsOrdered) ./ 2;
-simParsOrdered1 = round(meanVals,2,'significant');
-
+modelNames = {'1D', '2D'};
+parNames = {'\sigma', '\alpha', '\beta', '\gamma'};
+figure(7);clf;
+simParsOrdered1(:,:,1) = round(simPars1DOrdered,2,'significant');
+simParsOrdered1(:,:,2) = round(simParsOrdered,2,'significant');
+simParsOrdered1(simParsOrdered1<0) = NaN;
+c  = [1 0 0; 1 .4 0; 1 1 0;0 1 0; 0 1 1; 0 0 1;];
 for j = 1:2
     for i = 1:4
        subplot(2,4,(j-1)*4+i)
-        for k = 1
-            conditionalPlot(sq(meanVals(:,i,:,j)), sq(d(:,i,:,j)));%,[],'color',c(k,:));
-            hold on; 
-        end
-        line([0 100],[0 0],'Color','k','LineStyle','--')
-
+%        set(gca,'ColorOrder',c);
+       diff = reshape(groupMeans(d(:,i,:,j),1, repmat(simParsOrdered1(:,i,j),1,1,100),'dim'),11,[]);
+       h = errorBarPlot(abs(diff)','area',1,'standardError',2);
+       hold on
+       line([0 100],[0 0],'Color','k','LineStyle','--')
        if j==1; title(parNames{i}); end
-       if j==2,    xlabel('mean (fit + sim)'), end
-       if i==1
-           ylabel(sprintf('%s\nfit - sim',modelNames{j}));
-           xlim([0 100]);
-       else
-           xlim([0 1])
-       end
-       
+       if j==2,    xlabel(parNames{i},'FontWeight','bold'), end
+       if i==1, ylabel(sprintf('%s\nrecovery error',modelNames{j}),'FontWeight','bold'), end
        box off
+       x = unique(round(simParsOrdered1(:,i,j), 0+(i>1)));
+       set(gca,'XTick',1:5:11,'XTickLabel',x(1:5:end))
+       xlim([1 11])
+%        if i==1; ylim([-100 100]); set(gca, 'YTick', -100:50:100);
+%        else; ylim([-.6 .6]); set(gca, 'YTick', -.5:.5:.5);
+%        end
     end
 end
 makeSubplotScalesEqual(2,4,[2:4, 6:8])
 makeSubplotScalesEqual(2,4,[1 5])
+colormap(c)
+h = axes('visible','off'); % super X and Y labels
+h.XLabel.Visible = 'on';
+xlabel('simulated parameter','FontWeight','normal')
+
+saveas(figure(7), 'Figs/MemToolbox2DSim_5.jpg');
+
+%% bland altman
+% 
+% figure(7);clf
+% meanVals = nancat(4, fitPars1DOrdered + simPars1DOrdered, fitParsOrdered + simParsOrdered) ./ 2;
+% simParsOrdered1 = round(meanVals,2,'significant');
+% 
+% for j = 1:2
+%     for i = 1:4
+%        subplot(2,4,(j-1)*4+i)
+%         for k = 1
+%             conditionalPlot(sq(meanVals(:,i,:,j)), sq(d(:,i,:,j)));%,[],'color',c(k,:));
+%             hold on; 
+%         end
+%         line([0 100],[0 0],'Color','k','LineStyle','--')
+% 
+%        if j==1; title(parNames{i}); end
+%        if j==2,    xlabel('mean (fit + sim)'), end
+%        if i==1
+%            ylabel(sprintf('%s\nfit - sim',modelNames{j}));
+%            xlim([0 100]);
+%        else
+%            xlim([0 1])
+%        end
+%        
+%        box off
+%     end
+% end
+% makeSubplotScalesEqual(2,4,[2:4, 6:8])
+% makeSubplotScalesEqual(2,4,[1 5])
     
-%saveas(figure(7), 'Figs/MemToolbox2DSim_5.jpg');
+% saveas(figure(7), 'Figs/MemToolbox2DSim_5.jpg');
 
 
 %%

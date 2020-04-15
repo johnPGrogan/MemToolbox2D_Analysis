@@ -22,7 +22,7 @@ end
 nParSteps = 11;
 g = linspace(0.01,0.98,nParSteps);
 b = linspace(0.01,0.98,nParSteps);
-sd = linspace(0.01,100,nParSteps);
+sd = linspace(0.1,100,nParSteps);
 
 params = [ kron(g, ones(1,nParSteps^2)) ;...
     kron(ones(1,nParSteps), kron(b, ones(1,nParSteps)));...
@@ -200,9 +200,11 @@ for j=1:2
        if j==2,    xlabel(parNames{i},'FontWeight','bold'), end
        if i==1, ylabel(sprintf('%s\nrecovery error',modelNames{j}),'FontWeight','bold'), end
        box off
-       x = unique(round(simParsOrdered1(:,i), 1));
+       x = unique(round(simParsOrdered1(:,i), 0 + (i>1)));
        set(gca,'XTick',1:5:11,'XTickLabel',x(1:5:end))
        xlim([1 11])
+       if i==1; ylim([-40 20]); set(gca,'YTick',-40:20:20);
+       else; ylim([-.4 .2]); set(gca,'YTick', -.4:.2:.2);end
     end
 end
 subplot(2,4,8), colorbar(gca,'South','Ticks',[0 1], 'TickLabels',[numTrials([1 end])])
@@ -217,42 +219,42 @@ xlabel('simulated parameter','FontWeight','bold')
 %saveas(figure(4), 'Figs/MemToolbox2DSimNTrials_3.jpg');
 
 %% bland altman
-
-figure(5);clf
-meanVals = nancat(4, fitPars1DOrdered + simParsOrdered, fitParsOrdered + simParsOrdered) ./ 2;
-
-for j = 1:2
-    for i = 1:4
-       subplot(2,4,(j-1)*4+i)
-       set(gca,'ColorOrder',c);
-        for k = 1:20
-            conditionalPlot(meanVals(:,i,k,j), d(:,i,k,j),[],'color',c(k,:));
-            hold on; 
-        end
-        line([0 100],[0 0],'Color','k','LineStyle','--')
-       if j==1; title(parNames{i}); end
-       if j==2,    xlabel('mean (fit + sim)'), end
-       if i==1
-           ylabel(sprintf('%s\nfit - sim',modelNames{j}));
-           xlim([0 100]);
-       else
-           xlim([0 1]);
-       end
-       box off
-    end
-end
-makeSubplotScalesEqual(2,4,[2:4, 6:8])
-makeSubplotScalesEqual(2,4,[1 5])
-colormap(c)
-subplot(2,4,8), h1 = colorbar(gca,'North','Ticks',[0 1], 'TickLabels',[numTrials([1 end])]);
-    
-%saveas(figure(5), 'Figs/MemToolbox2DSimNTrials_4.jpg');
+% 
+% figure(5);clf
+% meanVals = nancat(4, fitPars1DOrdered + simParsOrdered, fitParsOrdered + simParsOrdered) ./ 2;
+% 
+% for j = 1:2
+%     for i = 1:4
+%        subplot(2,4,(j-1)*4+i)
+%        set(gca,'ColorOrder',c);
+%         for k = 1:20
+%             conditionalPlot(meanVals(:,i,k,j), d(:,i,k,j),[],'color',c(k,:));
+%             hold on; 
+%         end
+%         line([0 100],[0 0],'Color','k','LineStyle','--')
+%        if j==1; title(parNames{i}); end
+%        if j==2,    xlabel('mean (fit + sim)'), end
+%        if i==1
+%            ylabel(sprintf('%s\nfit - sim',modelNames{j}));
+%            xlim([0 100]);
+%        else
+%            xlim([0 1]);
+%        end
+%        box off
+%     end
+% end
+% makeSubplotScalesEqual(2,4,[2:4, 6:8])
+% makeSubplotScalesEqual(2,4,[1 5])
+% colormap(c)
+% subplot(2,4,8), h1 = colorbar(gca,'North','Ticks',[0 1], 'TickLabels',[numTrials([1 end])]);
+%     
+% saveas(figure(5), 'Figs/MemToolbox2DSimNTrials_4.jpg');
 
 %% plot diff in pars vs pars
-figure(6);clf;
+figure;%(6);clf;
 simParsOrdered1 = round(simParsOrdered,2,'significant');
-c = colormap('jet');
-c = c(1:3:end,:);
+c = colormap('jet');%crameri('hawaii'));
+c = c(round(linspace(1,length(c),20)),:);
 for j=1:2
     for i = 1:4
        subplot(2,4,(j-1)*4+i)
@@ -265,9 +267,11 @@ for j=1:2
        if j==2,    xlabel(parNames{i},'FontWeight','bold'), end
        if i==1, ylabel(sprintf('%s\nabs( recovery error )',modelNames{j}),'FontWeight','bold'), end
        box off
-       x = unique(round(simParsOrdered1(:,i), 1));
+       x = unique(round(simParsOrdered1(:,i), 0+(i>1)));
        set(gca,'XTick',1:5:11,'XTickLabel',x(1:5:end))
        xlim([1 11])
+       if i==1; ylim([0 100]); set(gca,'YTick',0:50:100);
+       else; ylim([0 .5]); set(gca,'YTick', 0:.25:.5);end
     end
 end
 subplot(2,4,8), colorbar(gca,'North','Ticks',[0 1], 'TickLabels',[numTrials([1 end])])

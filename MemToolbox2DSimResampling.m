@@ -7,7 +7,7 @@ function MemToolbox2DSimResampling(nIter)
 % 
 % nIter is the number of iterations across the parameter sweep (default = 100)
 %
-% it will %save the output in ./Data
+% it will save the output in ./Data
 %
 
 %% simulate and look at params
@@ -22,7 +22,7 @@ end
 nSteps = 11;
 g = linspace(0.01,.98,nSteps);
 b = linspace(0.01,.98,nSteps);
-sd = linspace(0.01,100,nSteps);
+sd = linspace(0.1,100,nSteps);
 
 params = [ kron(g, ones(1,nSteps^2)) ;...
     kron(ones(1,nSteps), kron(b, ones(1,nSteps)));...
@@ -69,7 +69,7 @@ parfor i = 1:nParSets
     
 end
 toc
-%save('Data/MemToolbox2DSimResampling.mat')
+save('Data/MemToolbox2DSimResampling.mat')
 %% plot params from swap model
 
 fitPars = cat(3, cat(1,fitParsBound{:}), cat(1,fitParsResamp{:}));
@@ -177,9 +177,11 @@ for j = 1:2
        if j==2,    xlabel(parNames{i},'FontWeight','bold'), end
        if i==1, ylabel(labels{j},'FontWeight','bold'), end
        box off
-       x = unique(round(simParsOrdered1(:,i,1), 1));
+       x = unique(round(simParsOrdered1(:,i,1), 0+(i>1)));
        set(gca,'XTick',1:5:11,'XTickLabel',x(1:5:end))
        xlim([1 11])
+       if i==1; ylim([-20 20]); set(gca,'YTick',linspace(ylim(1), ylim(2), 3));
+       else; ylim([-.06 .06]); set(gca,'YTick', linspace(ylim(1), ylim(2), 3));end
     end
 end
 makeSubplotScalesEqual(2,4,[2:4])

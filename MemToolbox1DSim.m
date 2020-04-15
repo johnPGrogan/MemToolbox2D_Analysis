@@ -27,9 +27,9 @@ end
 %% grid search of params
 nSteps = 11;
 cols = [3:2:10];
-g = linspace(0.0,1,nSteps);
-b = linspace(0,1,nSteps);
-sd = linspace(0.01,100,nSteps);
+g = linspace(0.01, 0.98, nSteps);
+b = linspace(0.01, 0.98, nSteps);
+sd = linspace(0.1, 100, nSteps);
 
 params = [ kron(g, ones(1,nSteps^2)) ;...
     kron(ones(1,nSteps), kron(b, ones(1,nSteps)));...
@@ -132,7 +132,7 @@ xlabel('simulated \gamma value','FontWeight','bold')
 h.YLabel.Visible = 'on';
 y = ylabel('recovered \gamma value','FontWeight','bold');
 y.Position(1) = y.Position(1) *1.2;
-%saveas(figure(3), 'Figs/MemToolbox1DSim_1.jpg');
+% saveas(figure(3), 'Figs/MemToolbox1DSim_1.jpg');
 %% misbind
 figure(4);clf
 for iG = 1:n
@@ -162,7 +162,7 @@ h.YLabel.Visible = 'on';
 y = ylabel('recovered \beta value','FontWeight','bold');
 y.Position(1) = y.Position(1) *1.2;
 
-%saveas(figure(4), 'Figs/MemToolbox1DSim_2.jpg');
+% saveas(figure(4), 'Figs/MemToolbox1DSim_2.jpg');
 %% SD
 figure(5);clf
 inds = [];
@@ -197,6 +197,6 @@ xlabel('simulated \gamma value','FontWeight','bold')
 h.YLabel.Visible = 'on';
 y = ylabel('recovered \gamma value','FontWeight','bold');
 y.Position(1) = y.Position(1) *1.2;
-%saveas(figure(5), 'Figs/MemToolbox1DSim_3.jpg');
+% saveas(figure(5), 'Figs/MemToolbox1DSim_3.jpg');
 %%
 save('Data/MemToolbox1DSim.mat')

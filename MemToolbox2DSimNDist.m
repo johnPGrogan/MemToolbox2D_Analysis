@@ -24,7 +24,7 @@ end
 nParSteps = 11;
 g = linspace(0.01,0.98,nParSteps);
 b = linspace(0.01,0.98,nParSteps);
-sd = linspace(0.01,100,nParSteps);
+sd = linspace(0.1,100,nParSteps);
 
 params = [ kron(g, ones(1,nParSteps^2)) ;...
     kron(ones(1,nParSteps), kron(b, ones(1,nParSteps)));...
@@ -88,7 +88,7 @@ figure(1);clf
 
 m = ['ko';'bx';'g+';'r^'];
 modelNames = {'1D','2D'};
-parNames = {'SD','\alpha','\beta','\gamma'}; % standard deviation, target, misbind, guess
+parNames = {'\sigma','\alpha','\beta','\gamma'}; % standard deviation, target, misbind, guess
 for j = 1:nMaxDist
     for i =1:4
         subplot(nMaxDist,4,(j-1)*4+i)
@@ -127,8 +127,8 @@ end
 figure(2);clf
 
 m = ['ko';'bx';'g+';'r^'];
-modelNames = {'1D','2D'};
-parNames = {'SD','\alpha','\beta','\gamma'}; % standard deviation, target, misbind, guess
+% modelNames = {'1D','2D'};
+% parNames = {'SD','\alpha','\beta','\gamma'}; % standard deviation, target, misbind, guess
 for j = 1:nMaxDist
     for i =1:4
         subplot(nMaxDist,4,(j-1)*4+i)
@@ -159,12 +159,57 @@ for j = 1:nMaxDist
 end
 SuperTitle('1D')
 
-%saveas(figure(2), 'Figs/MemToolbox2DSimNDist_2.jpg');
+% saveas(figure(2), 'Figs/MemToolbox2DSimNDist_2.jpg');
+
+%% abs mean error
+
+titles = {'1D', '2D'};
+figure(3);clf
+c = get(gca,'ColorOrder');
+absMeanErr = abs(nancat(4, fitParsOrdered, fitPars1DOrdered) - simParsOrdered) ./ simParsOrdered;
+
+for k = 1:2
+    for j = 1:2
+        subplot(2,2,(j-1)*2+k) 
+        if j==1
+            a = absMeanErr(:,:,:,k);
+        else % take good pars
+            a = absMeanErr(137:726:nParSets,:,:,k);
+        end
+
+        h = errorBarPlot(permute(a(:,2:4,:),[1,3,2]),'area',1);
+        hold on
+        yyaxis right
+        h2 = errorBarPlot(permute(a(:,1,:),[1,3,2]),'area',1);
+        gc = gca;
+        gc.YColor = c(1,:);
+        h2(1,1).Color = c(1,:);
+        h2(1,1).LineStyle = '-';
+        h2(1,2).FaceColor = c(1,:);
+        for i = 1:3
+            h(i,1).Color = c(i+1,:);
+            h(i,2).FaceColor = c(i+1,:);
+        end
+        if i==2, ylabel('SD abs mean err'), end
+        yyaxis left
+        gc = gca;
+        gc.YColor = [0 0 0];
+        
+        xlim([1 6])
+        set(gca,'XTick',1:nMaxDist);
+        if i==1, ylabel('abs mean error'), end
+        if j==2, xlabel('number of distractors'), end
+        if j==1, title(titles{k}), end
+    end
+end
+legend([h2(:,1);h(:,1)],parNames,'Location','Best')
+
+% saveas(figure(3), 'Figs/MemToolbox2DSimNDist_3.jpg');
 
 %% plot diff in pars vs pars
-modelNames = {'1D', '2D'};
 d = nancat(4, fitPars1DOrdered - simParsOrdered, fitParsOrdered - simParsOrdered);
-
+parNames = {'\sigma','\alpha','\beta','\gamma'}; % standard deviation, target, misbind, guess
+modelNames = {'1D', '2D'};
 figure(4);clf;
 simParsOrdered1 = round(simParsOrdered,2,'significant');
 c  = [1 0 0; 1 .4 0; 1 1 0;0 1 0; 0 1 1; 0 0 1;];
@@ -180,9 +225,11 @@ for j = 1:2
        if j==2,    xlabel(parNames{i},'FontWeight','bold'), end
        if i==1, ylabel(sprintf('%s\nrecovery error',modelNames{j}),'FontWeight','bold'), end
        box off
-       x = unique(round(simParsOrdered1(:,i), 1));
+       x = unique(round(simParsOrdered1(:,i), 0+(i>1)));
        set(gca,'XTick',1:5:11,'XTickLabel',x(1:5:end))
        xlim([1 11])
+       if i==1; ylim([-40 20]); set(gca,'YTick',-40:20:20);
+       else; ylim([-.4 .2]); set(gca,'YTick', -.4:.2:.2);end
     end
 end
 makeSubplotScalesEqual(2,4,[2:4, 6:8])
@@ -194,42 +241,42 @@ h.XLabel.Visible = 'on';
 xlabel('simulated parameter')
 
 
-%saveas(figure(4), 'Figs/MemToolbox2DSimNDist_4.jpg');
+saveas(figure(4), 'Figs/MemToolbox2DSimNDist_4.jpg');
 
 %% bland altman
-
-figure(5);clf
-meanVals = nancat(4, fitPars1DOrdered + simParsOrdered, fitParsOrdered + simParsOrdered) ./ 2;
-simParsOrdered1 = round(meanVals,2,'significant');
-
-for j = 1:2
-    for i = 1:4
-       subplot(2,4,(j-1)*4+i)
-       set(gca,'ColorOrder',c);
-        for k = 1:6
-            conditionalPlot(meanVals(:,i,k,j), d(:,i,k,j),[],'color',c(k,:));
-            hold on; 
-        end
-        line([0 100],[0 0],'Color','k','LineStyle','--')
-
-       if j==1; title(parNames{i}); end
-       if j==2,    xlabel('mean (fit + sim)'), end
-       if i==1
-           ylabel(sprintf('%s\nfit - sim',modelNames{j}));
-           xlim([0 100]);
-       else
-           xlim([0 1])
-       end
-       
-       box off
-    end
-end
-makeSubplotScalesEqual(2,4,[2:4, 6:8])
-makeSubplotScalesEqual(2,4,[1 5])
-colormap(c)
-subplot(2,4,8), h1 = colorbar(gca,'North','Ticks',[0 1], 'TickLabels',[1 nMaxDist]);
-    
-%saveas(figure(5), 'Figs/MemToolbox2DSimNDist_5.jpg');
+% 
+% figure(5);clf
+% meanVals = nancat(4, fitPars1DOrdered + simParsOrdered, fitParsOrdered + simParsOrdered) ./ 2;
+% simParsOrdered1 = round(meanVals,2,'significant');
+% 
+% for j = 1:2
+%     for i = 1:4
+%        subplot(2,4,(j-1)*4+i)
+%        set(gca,'ColorOrder',c);
+%         for k = 1:6
+%             conditionalPlot(meanVals(:,i,k,j), d(:,i,k,j),[],'color',c(k,:));
+%             hold on; 
+%         end
+%         line([0 100],[0 0],'Color','k','LineStyle','--')
+% 
+%        if j==1; title(parNames{i}); end
+%        if j==2,    xlabel('mean (fit + sim)'), end
+%        if i==1
+%            ylabel(sprintf('%s\nfit - sim',modelNames{j}));
+%            xlim([0 100]);
+%        else
+%            xlim([0 1])
+%        end
+%        
+%        box off
+%     end
+% end
+% makeSubplotScalesEqual(2,4,[2:4, 6:8])
+% makeSubplotScalesEqual(2,4,[1 5])
+% colormap(c)
+% subplot(2,4,8), h1 = colorbar(gca,'North','Ticks',[0 1], 'TickLabels',[1 nMaxDist]);
+%     
+% saveas(figure(5), 'Figs/MemToolbox2DSimNDist_5.jpg');
 
 %% plot diff in pars vs pars
 d = abs(nancat(4, fitPars1DOrdered - simParsOrdered, fitParsOrdered - simParsOrdered));
@@ -262,6 +309,6 @@ h = axes('visible','off'); % super X and Y labels
 h.XLabel.Visible = 'on';
 xlabel('simulated parameter')
 
-%saveas(figure(6), 'Figs/MemToolbox2DSimNDist_6.jpg');
+% saveas(figure(6), 'Figs/MemToolbox2DSimNDist_6.jpg');
 %%
 save('Data/MemToolbox2DSimNDist.mat')

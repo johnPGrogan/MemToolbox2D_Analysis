@@ -24,9 +24,9 @@ bias = linspace(20,200,nSteps); % different bias sizes to simulate
 %% grid search of params
 nParSteps = 11;
 cols = [3:2:10];
-g = linspace(0.1,.98,nParSteps);
-b = linspace(0.1,.98,nParSteps);
-sd = linspace(0.01,100,nParSteps);
+g = linspace(0.01,.98,nParSteps);
+b = linspace(0.01,.98,nParSteps);
+sd = linspace(0.1,100,nParSteps);
 
 params = [ kron(g, ones(1,nParSteps^2)) ;...
     kron(ones(1,nParSteps), kron(b, ones(1,nParSteps)));...
@@ -94,7 +94,7 @@ figure()
 
 m = ['ko';'bx';'g+';'r^'];
 modelNames = {'1D','2D'};
-parNames = {'SD','\alpha','\beta','\gamma'};
+parNames = {'\sigma','\alpha','\beta','\gamma'};
 for j = 1:nSteps
     subplot(3,2,j)
     hold on
@@ -222,6 +222,8 @@ for j = 1:2
        x = unique(round(simParsOrdered1(:,i), 1));
        set(gca,'XTick',1:5:11,'XTickLabel',x([1 ceil(length(x)/2) end]))
        xlim([1 11])
+       if i==1; ylim([-200 200]); set(gca,'YTick',-200:50:200);
+       else; ylim([-.6 .6]); set(gca,'YTick', -.5:.25:.5);end
     end
 end
 makeSubplotScalesEqual(2,4,[2:4, 6:8])
@@ -231,49 +233,47 @@ subplot(2,4,8), colorbar(gca,'South','Ticks',[0 1], 'TickLabels',arrayfun(@num2s
 h = axes('visible','off'); % super X and Y labels
 h.XLabel.Visible = 'on';
 xlabel('simulated parameter','FontWeight','normal')
-%saveas(figure(5), 'Figs/MemToolbox2DSimConstBias_4.jpg');
+saveas(figure(5), 'Figs/MemToolbox2DSimConstBias_4.jpg');
 
-%% bland altman
-
-figure(6);clf
-meanVals = nancat(4, fitParsOrdered + simParsOrdered, fitParsOrdered3(:,1:4,:) + simParsOrdered) ./ 2;
-
-for j = 1:2
-    for i = 1:4
-       subplot(2,4,(j-1)*4+i)
-        for k = 1:nSteps
-            conditionalPlot(meanVals(:,i,k,j), d(:,i,k,j),[],'color',c(k,:));
-            hold on; 
-        end
-        line([0 100],[0 0],'Color','k','LineStyle','--')
-
-       if j==1; title(parNames{i}); end
-       if j==2,    xlabel('mean (fit + sim)'), end
-       if i==1
-           ylabel(sprintf('%s\nfit - sim',modelNames{j}));
-           xlim([0 100]);
-       else
-           xlim([0 1])
-       end
-       
-       box off
-    end
-end
-makeSubplotScalesEqual(2,4,[2:4, 6:8])
-makeSubplotScalesEqual(2,4,[1 5])
-c = c(1:nSteps,:);
-colormap(c)
-subplot(2,4,8), colorbar(gca,'South','Ticks',[0 1], 'TickLabels',arrayfun(@num2str, bias([1 end]),'UniformOutput',0))
-    
-%saveas(figure(6), 'Figs/MemToolbox2DSimConstBias_5.jpg');
-
+% %% bland altman
+% 
+% figure(6);clf
+% meanVals = nancat(4, fitParsOrdered + simParsOrdered, fitParsOrdered3(:,1:4,:) + simParsOrdered) ./ 2;
+% 
+% for j = 1:2
+%     for i = 1:4
+%        subplot(2,4,(j-1)*4+i)
+%         for k = 1:6
+%             conditionalPlot(meanVals(:,i,k,j), d(:,i,k,j),[],'color',c(k,:));
+%             hold on; 
+%         end
+%         line([0 100],[0 0],'Color','k','LineStyle','--')
+% 
+%        if j==1; title(parNames{i}); end
+%        if j==2,    xlabel('mean (fit + sim)'), end
+%        if i==1
+%            ylabel(sprintf('%s\nfit - sim',modelNames{j}));
+%            xlim([0 100]);
+%        else
+%            xlim([0 1])
+%        end
+%        
+%        box off
+%     end
+% end
+% makeSubplotScalesEqual(2,4,[2:4, 6:8])
+% makeSubplotScalesEqual(2,4,[1 5])
+% colormap(c)
+% subplot(2,4,8), colorbar(gca,'South','Ticks',[0 1], 'TickLabels',arrayfun(@num2str, bias([1 end]),'UniformOutput',0))
+%     
+% saveas(figure(6), 'Figs/MemToolbox2DSimConstBias_5.jpg');
+% 
 %% plot diff in pars vs pars
 d = abs(nancat(4, fitParsOrdered - simParsOrdered, fitParsOrdered3(:,1:4,:) - simParsOrdered));
 
 figure(7);clf;
 simParsOrdered1 = round(simParsOrdered,2,'significant');
 c  = [ 0 0 1; 0 1 1;0 1 0; 1 1 0; 1 .4 0;1 0 0;];
-c = c(1:nSteps,:);
 for j = 1:2
     for i = 1:4
        subplot(2,4,(j-1)*4+i)

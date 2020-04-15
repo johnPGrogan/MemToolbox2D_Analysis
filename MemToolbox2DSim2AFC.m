@@ -22,8 +22,8 @@ if nargin == 0
 end
 
 nSteps = 11;
-g = linspace(0.0,1,nSteps);
-sd = linspace(0.01,100,nSteps);
+g = linspace(0.01,0.98,nSteps);
+sd = linspace(0.1,100,nSteps);
 
 params = [ kron(g, ones(1,nSteps));...
     kron(ones(1,nSteps), sd)]';
@@ -80,7 +80,7 @@ simParsOrdered = repmat([params(:,2), 1 - params(:,1), params(:,1)], 1,1,2);
 
 %%
 modelNames = {'1D','2D'};
-parNames = {'SD','\alpha','\gamma'};
+parNames = {'\sigma','\alpha','\gamma'};
 for j = 1:2
     for i=1:3
         subplot(2,3,(j-1)*3+i)
@@ -177,12 +177,14 @@ for j = 1:2
        hold on
        line([0 100],[0 0],'Color','k','LineStyle','--')
        if j==1; title(parNames{i}); end
-       if j==2,    xlabel(parNames{i},'FontWeight','bold'), end
+       if j==2, xlabel(parNames{i},'FontWeight','bold'), end
        if i==1, ylabel(sprintf('%s\nrecovery error',modelNames{j}),'FontWeight','bold'), end
        box off
-       x = unique(round(simParsOrdered1(:,i), 1));
+       x = unique(round(simParsOrdered1(:,i), 0 + (i>1)));
        set(gca,'XTick',1:5:11,'XTickLabel',x(1:5:end))
        xlim([1 11])
+       if i==1; ylim([-80 80]); set(gca,'YTick',linspace(ylim(1), ylim(2), 3));
+       else; ylim([-.25 .25]); set(gca,'YTick', linspace(ylim(1), ylim(2), 3));end
     end
 end
 makeSubplotScalesEqual(2,3,[2:3, 5:6])

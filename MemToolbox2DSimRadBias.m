@@ -24,9 +24,9 @@ bias = linspace(-.2,.2,nSteps); % radial bias size
 %% grid search of params
 nParSteps = 11;
 cols = [3:2:10];
-g = linspace(0.1,.98,nParSteps);
-b = linspace(0.1,.98,nParSteps);
-sd = linspace(0.01,100,nParSteps);
+g = linspace(0.01,.98,nParSteps);
+b = linspace(0.01,.98,nParSteps);
+sd = linspace(0.1,100,nParSteps);
 
 params = [ kron(g, ones(1,nParSteps^2)) ;...
     kron(ones(1,nParSteps), kron(b, ones(1,nParSteps)));...
@@ -96,7 +96,7 @@ figure()
 
 m = ['ko';'bx';'g+';'r^'];
 modelNames = {'1D','2D'};
-parNames = {'SD','\alpha','\beta','\gamma'}; % standard deviation, target, misbind, guess
+parNames = {'\sigma','\alpha','\beta','\gamma'}; % standard deviation, target, misbind, guess
 for j = 1:nSteps
     subplot(3,2,j)
     hold on
@@ -223,17 +223,16 @@ set(gca,'XTick',1:6, 'XTickLabel',bias, 'YTick',bias)
 box off
 xlabel('bias')
 ylabel('recovered bias')
-% saveas(figure(5), 'Figs/MemToolbox2DSimRadBias_4.jpg');
+saveas(figure(5), 'Figs/MemToolbox2DSimRadBias_4.jpg');
 
 %% plot diff in pars vs pars
 d = nancat(5, fitParsOrdered(:,1:4,:) - simParsOrdered, fitPars3Ordered(:,1:4,:) - simParsOrdered);
 parNames = {'\sigma','\alpha','\beta','\gamma'};
 
-
 figure(6);clf;
 simParsOrdered1 = round(simParsOrdered,2,'significant');
-c = colormap('jet');
-c = c(1:11:end,:);
+c  = [ 0 0 1; 0 1 1;0 1 0; 1 1 0; 1 .4 0;1 0 0;];
+colormap(c);
 for j=1:2
     for i = 1:4
        subplot(2,4,(j-1)*4+i)
@@ -244,16 +243,16 @@ for j=1:2
        line([0 100],[0 0],'Color','k','LineStyle','--')
        if j==2,    xlabel(parNames{i},'FontWeight','bold'), end
        if j==1, title(parNames{i}), end
+       if i==1, ylabel(sprintf('%s\nrecovery error',modelNames{j}),'FontWeight','bold'), end
        box off
-       x = unique(round(simParsOrdered1(:,i), 1));
-       set(gca,'XTick',1:4:11,'XTickLabel',x([1 ceil(length(x)/2) end]))
+       x = unique(round(simParsOrdered1(:,i), 0 + (i>1)));
+       set(gca,'XTick',1:5:11,'XTickLabel',x([1 ceil(length(x)/2) end]))
        xlim([1 11])
-       if i==1
-           ylabel(sprintf('%s\nrecovery error',labels{j}),'FontWeight','bold')
-       end
+       if i==1; ylim([-80 80]); set(gca,'YTick',-80:40:80);
+       else; ylim([-.1 .1]); set(gca,'YTick', -.1:.1:.1);end;
     end
 end
-subplot(2,4,5), colorbar(gca,'North','Ticks',[0 .5 1],'TickLabels',[bias(1) 0 bias(end)])
+subplot(2,4,5), colorbar(gca,'North','Ticks',[0 1],'TickLabels',[bias(1) bias(end)])
 makeSubplotScalesEqual(2,4,[2:4 6:8])
 makeSubplotScalesEqual(2,4,[1 5])
 h = axes('visible','off'); % super X and Y labels
@@ -263,38 +262,38 @@ xlabel('simulated parameter','FontWeight','normal')
 
 
 
-%% bland altman
-
-figure(7);clf
-meanVals = nancat(4, fitParsOrdered(:,1:4,:) + simParsOrdered, fitPars3Ordered(:,1:4,:) + simParsOrdered) ./ 2;
-
-for j = 1:2
-    for i = 1:4
-       subplot(2,4,(j-1)*4+i)
-       set(gca,'ColorOrder',c);
-        for k = 1:6
-            conditionalPlot(meanVals(:,i,k,j), d(:,i,k,j),[],'color',c(k,:));
-            hold on; 
-        end
-        line([0 100],[0 0],'Color','k','LineStyle','--')
-
-       if j==1; title(parNames{i}); end
-       if j==2,    xlabel('mean (fit + sim)'), end
-       if i==1
-           ylabel(sprintf('%s\nfit - sim',labels{j}));
-           xlim([0 100]);
-       else
-           xlim([0 1])
-       end
-       
-       box off
-    end
-end
-makeSubplotScalesEqual(2,4,[2:4, 6:8])
-makeSubplotScalesEqual(2,4,[1 5])
-colormap(c)
-subplot(2,4,8), colorbar(gca,'South','Ticks',[0 1], 'TickLabels',arrayfun(@num2str, bias([1 end]),'UniformOutput',0))
-    
+% %% bland altman
+% 
+% figure(7);clf
+% meanVals = nancat(4, fitParsOrdered(:,1:4,:) + simParsOrdered, fitPars3Ordered(:,1:4,:) + simParsOrdered) ./ 2;
+% 
+% for j = 1:2
+%     for i = 1:4
+%        subplot(2,4,(j-1)*4+i)
+%        set(gca,'ColorOrder',c);
+%         for k = 1:6
+%             conditionalPlot(meanVals(:,i,k,j), d(:,i,k,j),[],'color',c(k,:));
+%             hold on; 
+%         end
+%         line([0 100],[0 0],'Color','k','LineStyle','--')
+% 
+%        if j==1; title(parNames{i}); end
+%        if j==2,    xlabel('mean (fit + sim)'), end
+%        if i==1
+%            ylabel(sprintf('%s\nfit - sim',labels{j}));
+%            xlim([0 100]);
+%        else
+%            xlim([0 1])
+%        end
+%        
+%        box off
+%     end
+% end
+% makeSubplotScalesEqual(2,4,[2:4, 6:8])
+% makeSubplotScalesEqual(2,4,[1 5])
+% colormap(c)
+% subplot(2,4,8), colorbar(gca,'South','Ticks',[0 1], 'TickLabels',arrayfun(@num2str, bias([1 end]),'UniformOutput',0))
+%     
 % saveas(figure(7), 'Figs/MemToolbox2DSimRadBias_6.jpg');
 
 %% plot diff in pars vs pars
@@ -321,7 +320,7 @@ for j=1:2
        set(gca,'XTick',1:4:11,'XTickLabel',x([1 ceil(length(x)/2) end]))
        xlim([1 11])
        if i==1
-           ylabel(sprintf('%s\nrecovery error',labels{j}),'FontWeight','bold')
+           ylabel(sprintf('%s\nrecovery error',modelNames{j}),'FontWeight','bold')
        end
     end
 end
